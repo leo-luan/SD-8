@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Sistemas Distribuídos - Aula08</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/night.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<p>
+						Universidade do Estado de Mato Grosso <br />
+						<em>Campus</em> Cáceres <br />
+						Faculdade de Ciências Exatas <br/>
+						Bacharelado em Ciência da Computação
+					</p>
+					<br />
+					<h2>Sistemas Distribuídos</h2>
+					<h4>Capítulo 6 - Sincronização (Parte 2)</h4>
+					<br />
+					<p>
+						Leonardo Luan Martins da Silva <br />
+						22 de abril de 2019
+					</p>
+				</section>
+
+				<section style="text-align: left; font-size: 90%">
+					<h3>Relógios Lógicos</h3>
+					<ul>
+						<li style='margin-bottom: 25px'>Com relógios físicos, existe uma sincronização com o tempo real.</li>
+						<li style='margin-bottom: 25px'>No entanto, em alguns casos pode ser suficiente que cada nó de um SD concorde com uma hora corrente, sem que essa seja a mesma que a hora real.</li>
+					</ul>
+				</section>
+
+				<section style="text-align: left; font-size: 90%">
+					<h3>Relógios Lógicos de Lamport</h3>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>Para sincronizar relógios lógicos, Lamport definiu uma relação denominada <strong>acontece antes</strong>.</li>
+							<li>A expressão a → b é lida como ‘a acontece antes de b’ e significa que todos os processos concordam que primeiro ocorre um evento a, e depois, um evento b.</li>
+						</ul>
+					</section>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>A relação ‘acontece antes’ pode ser observada em duas situações:</li>
+							<ul>
+								<li style='margin-bottom: 25px'>Se a e b são eventos do mesmo processo, e a ocorre antes de b, então a → b é verdadeira.</li>
+								<li>E a é o evento de uma mensagem sendo enviada por um processo, e b é o evento da mensagem sendo recebida por outro processo, então a → b também é verdadeira. Uma mensagem não pode ser recebida antes de ser enviada, visto que ela leva uma quantidade de tempo finita, diferente de zero, para chegar.</li>
+							</ul>
+						</ul>
+					</section>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>A relação ‘acontece antes’ é transitiva, portanto,<br/>se a → b e b → c, então a → c.</li>
+							<li style='margin-bottom: 25px'>O que precisamos é um modo de medir uma noção de tempo tal que, para cada evento a, possamos designar um valor de tempo C(a) com o qual todos os processos concordam.</li>
+							<li>Esses valores de tempo precisam ter a propriedade de se a → b, então C(a) < C(b).</li>
+						</ul>
+					</section>
+				</section>
+
+				<section style="text-align: left; font-size: 85%">
+					<h3 style="font-size: 130%">Funcionamento do Algoritmo de Lamport</h3>
+					<section>
+						<p>Considere os três processos apresentados na Figura 6.9(a)</p>
+						<img data-src="image1.jpeg">
+					</section>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>Os processos executam em máquinas diferentes, cada um com seu próprio relógio, que funciona a sua própria velocidade.</li>
+							<li style='margin-bottom: 25px'>Como podemos ver na figura, quando o relógio pulsa 6 vezes no processo P1, pulsou 8 vezes no processo P2 e 10 vezes no processo P3.</li>
+							<li style='margin-bottom: 25px'>Cada relógio funciona a uma taxa constante, mas as taxas são diferentes devido às diferenças nos cristais.</li>
+							<li>No tempo 6, o processo P1 envia a mensagem m1 ao processo P2.</li>
+						</ul>
+					</section>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>O tempo que essa mensagem leva para chegar depende do relógio no qual você se baseia.</li>
+							<li style='margin-bottom: 25px'>Seja como for, o relógio no processo P2 marca 16 quando a mensagem chega.</li>
+							<li style='margin-bottom: 25px'>Se a mensagem transportar com ela o tempo de início, 6, o processo P2 concluirá que ela levou 10 pulsos para fazer sua jornada.</li>
+							<li style='margin-bottom: 25px'>Segundo esse raciocínio, a mensagem m2 de P2 a P3 leva 16 pulsos</li>
+							<li>Agora considere a mensagem m3. Ela sai do processo P3 em 60 e chega em P2 em 56.</li>
+						</ul>
+					</section>
+					<section>
+						<ul>
+							<li style='margin-bottom: 25px'>Da mesma maneira, a mensagem m4 de P2 e P1 sai em 64 e chega em 54. Esses valores são claramente implausíveis. É essa situação que deve ser evitada.</li>
+							<li style='margin-bottom: 25px'>A solução de Lamport resulta diretamente da relação ‘acontece antes’. Visto que m3 saiu em 60, ela deve chegar em 61 ou mais tarde.</li>
+							<li style='margin-bottom: 25px'>Portanto, cada mensagem transporta o tempo de envio conforme o relógio do remetente.</li>
+							<li>Quando uma mensagem chega e o relógio do receptor mostra um valor anterior ao tempo em que a mensagem foi enviada, o receptor adianta seu relógio para ficar uma unidade a mais do tempo de envio.</li>
+						</ul>
+					</section>
+					<section>
+						<p>Na Figura 6.9(b) vemos que, agora, m3 chega em 61. De modo semelhante, m4 chega em 70.</p>
+						<img data-src="image1.jpeg">
+					</section>
+					<section style="font-size: 90%">
+						<ul>
+							<li style='margin-bottom: 25px'>Para implementar o relógio lógico de Lamport, cada processo Pi mantém um contador local Ci. Esses contadores são atualizados conforme as etapas apresentadas a seguir:</li>
+							<ul>
+								<li style='margin-bottom: 25px'>Antes de executar um evento (isto é, enviar uma mensagem pela rede, entregar uma mensagem a uma aplicação, ou qualquer outro evento interno), Pi executa Ci ← Ci + 1.</li>
+								<li style='margin-bottom: 25px'>Quando o processo Pi envia uma mensagem m a Pj, ajusta a marca de tempo de m, ts(m), para igual a Ci após ter executado a etapa anterior.</li>
+								<li>Ao receber uma mensagem m, o processo Pj ajusta seu próprio contador local para Cj ← max(Cj, ts(m)) e, depois disso, executa a primeira etapa a entrega a mensagem a aplicação.</li>
+							</ul>
+						</ul>
+					</section>
+				</section>
+
+				<section style="text-align: center">
+					<br/><br/><br/><br/>
+					<h5>Aguardem a chamada!<br/><br/>Até a próxima aula!</h5>
+				</section>
+
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				center: false,
+				mouseWheel: true,
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+			Reveal.configure({ slideNumber: 'c/t' });
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</body>
+</html>
